@@ -1,0 +1,19 @@
+##################################
+#### argon-fan service config ####
+##################################
+
+# Polling interval in seconds.
+poll_interval_secs = 1
+
+# The number of cooldown cycles to keep the fan speed stable for.
+cooldown_cycles = 5
+
+# The filtering factor for smoothing CPU temperature.
+# Must be between `0.0` and `1.0`.
+filter_factor = 0.2
+
+# Fan curve points array in strictly asceding order.
+fan_curve = [
+    { temp = 30, speed = 40 },
+    { temp = 65, speed = 100 }
+]

@@ -1,0 +1,29 @@
+name: "Argon40 V2 case fan"
+version: "1.0.0"
+slug: "argon-v2-fan"
+description: "A background Rust service that controls the Argon40 V2 case fan"
+startup: system
+boot: auto
+arch:
+  - aarch64
+privileged:
+  - SYS_RAWIO
+devices:
+  - /dev/i2c-1
+init: false
+options:
+  poll_interval_secs: 1
+  cooldown_cycles: 5
+  filter_factor: 0.2
+  fan_curve:
+    - temp: 30
+      speed: 40
+    - temp: 65
+      speed: 100
+schema:
+  poll_interval_secs: int
+  cooldown_cycles: int
+  filter_factor: float(0.0,1.0)
+  fan_curve:
+    - temp: int
+      speed: int(0,100)

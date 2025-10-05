@@ -1,0 +1,14 @@
+[Unit]
+Description=Argon40 fan service
+After=syslog.target network.target multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/usr/bin/argon-fan
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,31 @@
+[package]
+name = "argon-v2-fan"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.deb]
+maintainer-scripts = "../debian/"
+systemd-units = {}
+assets = [
+    { source = "target/release/argon-v2-fan", dest = "/usr/bin/argon-fan", mode = "0755" },
+    { source = "../assets/config.toml", dest = "/usr/share/argon-fan/config.example.toml", mode = "0644" },
+    { source = "../assets/config.toml", dest = "/etc/argon-fan/config.toml", mode = "0644" }
+]
+
+[features]
+default = ["toml"]
+json = ["argon-fan/json"]
+toml = ["argon-fan/toml"]
+
+[dependencies]
+# Internal
+argon-fan = { workspace = true }
+
+# External
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true
