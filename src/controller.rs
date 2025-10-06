@@ -117,7 +117,7 @@ where
         Ok(())
     }
 
-    /// Reads and filters the CPU temperature using the filter factor from [`Config`].
+    /// Reads and filters the CPU temperature using the filter factor.
     #[instrument(skip(self), err(Debug))]
     fn read_temp(&mut self) -> Result<f32, IoError> {
         tracing::debug!("Reading CPU temperature...");
