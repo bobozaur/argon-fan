@@ -69,9 +69,11 @@ dependencies = [
  "config",
  "rppal",
  "serde",
+ "signal-hook",
  "systemstat",
  "thiserror",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -79,7 +81,6 @@ name = "argon-v2-fan"
 version = "1.0.0"
 dependencies = [
  "argon-fan",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -87,7 +88,6 @@ name = "argon-v3-fan"
 version = "1.0.0"
 dependencies = [
  "argon-fan",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -391,6 +391,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "signal-hook"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d881a16cf4426aa584979d30bd82cb33429027e42122b169753d6ef1085ed6e2"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
+name = "signal-hook-registry"
+version = "1.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2a4719bff48cee6b39d12c020eeb490953ad2443b7055bd0b21fca26bd8c28b"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

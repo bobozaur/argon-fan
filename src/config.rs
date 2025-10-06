@@ -3,6 +3,14 @@ use config::{ConfigError, File};
 use serde::Deserialize;
 use tracing::instrument;
 
+/// CLI arguments parser struct.
+#[derive(Debug, Parser)]
+#[command(name = "argon-fan", version, about, long_about = None)]
+pub struct Args {
+    #[arg(long, default_value = "/etc/argon-fan/config.toml")]
+    pub config: String,
+}
+
 /// Service configuration struct.
 #[derive(Debug, Deserialize)]
 #[serde(try_from = "ConfigDe")]
@@ -20,17 +28,11 @@ pub struct Config {
 
 impl Config {
     #[instrument(ret, err(Debug))]
-    pub fn new() -> Result<Self, ConfigError> {
-        tracing::debug!("Parsing args...");
-
-        let path = Args::try_parse()
-            .map_err(|e| ConfigError::Message(e.to_string()))?
-            .config;
-
+    pub fn new(path: &str) -> Result<Self, ConfigError> {
         tracing::info!("Reading config from {path}...");
 
         config::Config::builder()
-            .add_source(File::with_name(&path))
+            .add_source(File::with_name(path))
             .build()?
             .try_deserialize()
     }
@@ -44,14 +46,6 @@ pub struct FanCurvePoint {
     pub temp: f32,
     /// Speed that the fan should be set to when the temperature is exceeded.
     pub speed: u8,
-}
-
-/// CLI arguments parser struct.
-#[derive(Debug, Parser)]
-#[command(name = "argon-fan", version, about, long_about = None)]
-struct Args {
-    #[arg(long, default_value = "/etc/argon-fan/config.toml")]
-    config: String,
 }
 
 impl TryFrom<ConfigDe> for Config {

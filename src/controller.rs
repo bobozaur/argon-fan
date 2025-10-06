@@ -4,11 +4,7 @@ use rppal::i2c::I2c;
 use systemstat::{Platform, System};
 use tracing::instrument;
 
-use crate::{
-    ArgonCase, I2cError, IoError,
-    config::{Config, FanCurvePoint},
-    error::ControllerError,
-};
+use crate::{ArgonCase, I2cError, IoError, config::FanCurvePoint, error::ControllerError};
 
 #[allow(
     missing_debug_implementations,
@@ -16,10 +12,12 @@ use crate::{
 )]
 pub struct FanController<C: ArgonCase> {
     case: PhantomData<fn() -> C>,
-    config: Config,
     i2c: I2c,
     system: System,
     state: ControllerState,
+    fan_curve: Vec<FanCurvePoint>,
+    cooldown_cycles: u8,
+    filter_factor: f32,
     current_speed: u8,
     prev_temp: f32,
 }
@@ -34,13 +32,14 @@ where
     /// Creates a new [`FanController`].
     ///
     /// # Errors
-    /// Will error out if parsing the config file,
-    /// connecting to the I2C bus or reading the CPU temperature fails.
+    /// Will error out if communicating with the I2C device or reading the CPU temperature fails.
     #[instrument(err(Debug))]
-    pub fn new() -> Result<Self, ControllerError> {
+    pub fn new(
+        fan_curve: Vec<FanCurvePoint>,
+        cooldown_cycles: u8,
+        filter_factor: f32,
+    ) -> Result<Self, ControllerError> {
         tracing::info!("Creating fan controller...");
-
-        let config = Config::new()?;
 
         tracing::info!("Connecting to I2C bus...");
         let mut i2c = I2c::with_bus(Self::I2C_BUS)?;
@@ -58,10 +57,12 @@ where
 
         let mut controller = Self {
             case: PhantomData,
-            config,
             i2c,
             system: System::new(),
             state: ControllerState::Regular,
+            fan_curve,
+            cooldown_cycles,
+            filter_factor,
             current_speed: 0,
             prev_temp,
         };
@@ -71,49 +72,49 @@ where
         Ok(controller)
     }
 
-    /// Runs the fan controller loop.
+    /// Runs the fan controller logic once. Meant to be called in a loop.
     ///
     /// # Errors
     /// Will error out if communicating with the I2C device or reading the CPU temperature fails.
     #[instrument(skip(self), err(Debug))]
-    pub fn run(mut self) -> Result<(), ControllerError> {
-        loop {
-            let temp = self.read_temp().map_err(ControllerError::TempRead)?;
+    pub fn run_once(&mut self) -> Result<(), ControllerError> {
+        let temp = self.read_temp().map_err(ControllerError::TempRead)?;
 
-            let new_speed = self
-                .config
-                .fan_curve
-                .iter()
-                .rfind(|FanCurvePoint { temp: t, .. }| *t <= temp)
-                .map(|FanCurvePoint { speed, .. }| *speed)
-                .unwrap_or_default();
+        let new_speed = self
+            .fan_curve
+            .iter()
+            .rfind(|FanCurvePoint { temp: t, .. }| *t <= temp)
+            .map(|FanCurvePoint { speed, .. }| *speed)
+            .unwrap_or_default();
 
-            match self.state {
-                _ if new_speed > self.current_speed => {
-                    self.set_speed(new_speed)?;
-                    self.current_speed = new_speed;
-                    self.state = ControllerState::Regular;
-                }
-
-                ControllerState::Regular if new_speed == self.current_speed => {}
-                ControllerState::Regular => {
-                    self.state = ControllerState::Cooldown {
-                        cycles: self.config.cooldown_cycles,
-                    };
-                    continue;
-                }
-                ControllerState::Cooldown { cycles: 0 } => {
-                    self.state = ControllerState::Regular;
-                    self.current_speed = 0;
-                    continue;
-                }
-                ControllerState::Cooldown { cycles } => {
-                    self.state = ControllerState::Cooldown { cycles: cycles - 1 };
-                }
+        match self.state {
+            // If we have to ramp up the speed, do it.
+            _ if new_speed > self.current_speed => {
+                self.set_speed(new_speed)?;
+                self.current_speed = new_speed;
+                self.state = ControllerState::Regular;
             }
-
-            std::thread::sleep(Duration::from_secs(self.config.poll_interval_secs));
+            // Cooldown is over so update to the new speed.
+            ControllerState::Cooldown { cycles: 0 } => {
+                self.set_speed(new_speed)?;
+                self.current_speed = new_speed;
+                self.state = ControllerState::Regular;
+            }
+            // Cooling down after a temperature increase.
+            ControllerState::Cooldown { cycles } => {
+                self.state = ControllerState::Cooldown { cycles: cycles - 1 };
+            }
+            // Avoid setting the same speed.
+            ControllerState::Regular if new_speed == self.current_speed => {}
+            // If speed is not higher and not equal, then we're meant
+            // to decrease it. But cool down first.
+            ControllerState::Regular => {
+                let cycles = self.cooldown_cycles;
+                self.state = ControllerState::Cooldown { cycles };
+            }
         }
+
+        Ok(())
     }
 
     /// Reads and filters the CPU temperature using the filter factor from [`Config`].
@@ -125,8 +126,7 @@ where
         let new_temp = self.system.cpu_temp()?;
         self.prev_temp = new_temp;
 
-        let factor = self.config.filter_factor;
-        let temp = new_temp * factor + (1.0 - factor) * prev_temp;
+        let temp = new_temp * self.filter_factor + (1.0 - self.filter_factor) * prev_temp;
         tracing::info!("CPU temperature: prev={prev_temp}; new={new_temp}; filtered={temp}");
 
         Ok(temp)
@@ -150,6 +150,8 @@ where
     C: ArgonCase,
 {
     fn drop(&mut self) {
+        tracing::info!("Fan controller shutting down...");
+
         self.set_speed(0)
             .inspect_err(|e| tracing::warn!("error turning off fan: {e}"))
             .ok();

@@ -28,11 +28,7 @@ json = ["argon-fan/json"]
 toml = ["argon-fan/toml"]
 
 [dependencies]
-# Internal
 argon-fan = { workspace = true }
-
-# External
-tracing-subscriber = { workspace = true }
 
 [lints]
 workspace = true

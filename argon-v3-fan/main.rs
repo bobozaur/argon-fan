@@ -1,7 +1,6 @@
 use std::error::Error;
 
-use argon_fan::{ArgonCase, FanController};
-use tracing_subscriber::EnvFilter;
+use argon_fan::ArgonCase;
 
 /// Argon40 V3 case.
 struct ArgonV3;
@@ -17,12 +16,6 @@ impl ArgonCase for ArgonV3 {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let env_filter = EnvFilter::builder()
-        .with_default_directive("info".parse()?)
-        .from_env_lossy();
-    tracing_subscriber::fmt().with_env_filter(env_filter).init();
-
-    FanController::<ArgonV3>::new()?.run()?;
-    Ok(())
+fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    argon_fan::run::<ArgonV3>()
 }
