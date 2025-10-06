@@ -1,4 +1,3 @@
-ARG BUILD_FROM
 ARG ARGON_FAN
 
 FROM rust:latest as builder
@@ -6,10 +5,9 @@ FROM rust:latest as builder
 WORKDIR /app
 COPY . .
 
-# The number of concurrent jobs is limited because lower-end systems might apparently run out of memory.
-RUN cargo build --release -p $ARGON_FAN --no-default-features --features json -j 1
+RUN cargo build --release -p $ARGON_FAN --no-default-features --features json
 
-FROM $BUILD_FROM
+FROM debian:bullseye-slim
 
 COPY --from=builder /app/target/release/$ARGON_FAN /usr/bin/argon-fan
 
