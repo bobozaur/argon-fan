@@ -1,5 +1,6 @@
 [package]
 name = "argon-v2-fan"
+description = "Argon40 V2 case fan control service"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
