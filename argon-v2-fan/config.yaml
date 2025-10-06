@@ -2,7 +2,7 @@ name: "Argon40 V2 case fan"
 version: "1.0.0"
 slug: "argon-v2-fan"
 description: "A background Rust service that controls the Argon40 V2 case fan"
-image: ghcr.io/bogdan/argon-v2-fan-{arch}:latest
+image: ghcr.io/bogdan/argon-v2-fan
 startup: system
 boot: auto
 arch:
