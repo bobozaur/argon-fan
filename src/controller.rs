@@ -66,6 +66,7 @@ where
             prev_temp,
         };
 
+        // Start with the fan turned off.
         controller.set_speed(0)?;
         Ok(controller)
     }
@@ -154,8 +155,15 @@ where
             .ok();
     }
 }
+
+/// [`FanController`] state.
 #[derive(Clone, Copy, Debug)]
 enum ControllerState {
+    /// The fan is running as usual.
     Regular,
+    /// The fan is in cooldown mode, meaning that
+    /// CPU temperature has dropped yet we want to keep it that way.
+    ///
+    /// Contains the remaining cycles left for cooldown.
     Cooldown { cycles: u8 },
 }
