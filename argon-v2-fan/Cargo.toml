@@ -6,14 +6,9 @@ authors.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
-autobins = false
-
-[[bin]]
-name = "argon-v2-fan"
-path = "main.rs"
-required-features = ["toml"]
 
 [package.metadata.deb]
+features = ["toml"]
 maintainer-scripts = "../debian/"
 systemd-units = {}
 assets = [
@@ -23,7 +18,6 @@ assets = [
 ]
 
 [features]
-default = ["toml"]
 json = ["argon-fan/json"]
 toml = ["argon-fan/toml"]
 
