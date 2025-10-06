@@ -91,13 +91,11 @@ where
             // If we have to ramp up the speed, do it.
             _ if new_speed > self.current_speed => {
                 self.set_speed(new_speed)?;
-                self.current_speed = new_speed;
                 self.state = ControllerState::Regular;
             }
             // Cooldown is over so update to the new speed.
             ControllerState::Cooldown { cycles: 0 } => {
                 self.set_speed(new_speed)?;
-                self.current_speed = new_speed;
                 self.state = ControllerState::Regular;
             }
             // Cooling down after a temperature increase.
@@ -106,10 +104,12 @@ where
             }
             // Avoid setting the same speed.
             ControllerState::Regular if new_speed == self.current_speed => {}
-            // If speed is not higher and not equal, then we're meant
-            // to decrease it. But cool down first.
+            // Speed is lower but no cooldown set; just update the speed.
+            ControllerState::Regular if self.cooldown_cycles == 0 => self.set_speed(new_speed)?,
+            // Speed is lower but cooldown first.
             ControllerState::Regular => {
-                let cycles = self.cooldown_cycles;
+                // This is considered the first cooldown cycle.
+                let cycles = self.cooldown_cycles - 1;
                 self.state = ControllerState::Cooldown { cycles };
             }
         }
