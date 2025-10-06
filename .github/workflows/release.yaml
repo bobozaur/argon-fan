@@ -110,7 +110,7 @@ jobs:
           file: ./home_assistant/Dockerfile
           push: true
           platforms: linux/arm64
-          build-args: ARGON_FAN="${{ matrix.package }}"
+          build-args: ARGON_FAN=${{ matrix.package }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.package }}:${{ env.VERSION }}
             ghcr.io/${{ github.repository_owner }}/${{ matrix.package }}:latest
