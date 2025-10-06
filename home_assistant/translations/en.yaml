@@ -1,0 +1,22 @@
+configuration:
+  poll_interval_secs:
+    name: Poll Interval Seconds
+    description: >-
+      Determines how frequently the the system is polled so that the fan gets adjusted.
+  cooldown_cycles:
+    name: Cooldown Cycles
+    description: >-
+      Determines the amount of polling cycles the fan speed will remain unchanged even if the CPU
+      temperature drops. The actual duration will be the `cooldown_cycles * poll_interval_secs`.
+  filter_factor:
+    name: Filter factor
+    description: >-
+      Determines how much the latest temperature reading influences the reported CPU temperature.
+      Used to filter sudden temperature spikes through the formula:
+      `new_temp * filter_factor + (1.0 - filter_factor) * prev_temp`
+
+      A filter_factor of `1.0` means that only the newest reading is used.
+  fan_curve:
+    name: Fan Curve
+    description: >-
+      Strictly ascending list of fan curve points comprising of temperatures and fan speed percentages.

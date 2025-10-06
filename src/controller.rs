@@ -115,6 +115,7 @@ where
         }
     }
 
+    /// Reads and filters the CPU temperature using the filter factor from [`Config`].
     #[instrument(skip(self), err(Debug))]
     fn read_temp(&mut self) -> Result<f32, IoError> {
         tracing::debug!("Reading CPU temperature...");
@@ -124,17 +125,18 @@ where
         self.prev_temp = new_temp;
 
         let factor = self.config.filter_factor;
-        let temp = new_temp * factor + (1.0 - factor) * self.prev_temp;
+        let temp = new_temp * factor + (1.0 - factor) * prev_temp;
         tracing::info!("CPU temperature: prev={prev_temp}; new={new_temp}; filtered={temp}");
 
         Ok(temp)
     }
 
+    /// Sets the fan speed percentage.
     #[instrument(skip(self), err(Debug))]
     fn set_speed(&mut self, speed: u8) -> Result<(), I2cError> {
         tracing::info!("Setting fan speed: {speed}%");
 
-        let (command, value) = C::speed_command(speed);
+        let (command, value) = C::i2c_fan_command(speed);
         self.i2c.smbus_write_byte(command, value)?;
         self.current_speed = speed;
 

@@ -10,7 +10,7 @@ struct ArgonV2;
 ///
 /// The speed gets set by accessing the equivalent command address.
 impl ArgonCase for ArgonV2 {
-    fn speed_command(speed: u8) -> (u8, u8) {
+    fn i2c_fan_command(speed: u8) -> (u8, u8) {
         (speed, 0)
     }
 }

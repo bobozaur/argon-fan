@@ -5,6 +5,12 @@ authors.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
+autobins = false
+
+[[bin]]
+name = "argon-v2-fan"
+path = "main.rs"
+required-features = ["toml"]
 
 [package.metadata.deb]
 maintainer-scripts = "../debian/"
