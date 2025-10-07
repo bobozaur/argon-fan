@@ -1,4 +1,4 @@
-FROM rust:latest AS builder
+FROM rust:1-slim-bullseye AS builder
 
 ARG ARGON_FAN
 ENV ARGON_FAN=$ARGON_FAN
