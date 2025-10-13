@@ -1,18 +1,16 @@
 FROM rust:1-slim-bullseye AS builder
 
-ARG ARGON_FAN
-ENV ARGON_FAN=$ARGON_FAN
+ARG CASE_VERSION
+ENV CASE_VERSION=$CASE_VERSION
 
 WORKDIR /app
 COPY . .
 
-RUN cargo build --release -p ${ARGON_FAN} --no-default-features --features json
+RUN cargo build --release --no-default-features --features json,${CASE_VERSION}
 
 FROM debian:bullseye-slim
 
-ARG ARGON_FAN
-
-COPY --from=builder /app/target/release/${ARGON_FAN} /usr/bin/argon-fan
+COPY --from=builder /app/target/release/argon-fan /usr/bin/argon-fan
 
 # Run the binary directly
 CMD ["/usr/bin/argon-fan", "--config", "/data/options.json"]

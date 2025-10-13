@@ -1,50 +1,41 @@
 [package]
 name = "argon-fan"
-description = "Argon40 case fan control library"
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-repository.workspace = true
-license.workspace = true
-
-[features]
-json = ["config/json"]
-toml = ["config/toml"]
-
-[dependencies]
-clap = { workspace = true }
-config = { workspace = true }
-rppal = { workspace = true }
-serde = { workspace = true }
-signal-hook = { workspace = true }
-systemstat = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-
-[lints]
-workspace = true
-
-[profile.release]
-lto = "fat"
-codegen-units = 1
-strip = "symbols"
-
-[workspace]
-members = [".", "argon-v2-fan", "argon-v3-fan"]
-
-[workspace.package]
+description = "Argon40 case fan control daemon"
 version = "1.0.0"
 authors = ["Bogdan Mircea <mirceapetrebogdan@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/bobozaur/argon-fan"
 license = "MIT"
 
-[workspace.dependencies]
-# Internal
-argon-fan = { path = "." }
+[package.metadata.deb]
+maintainer-scripts = "debian/"
+systemd-units = {}
+assets = [
+    "$auto",
+    { source = "assets/config.toml", dest = "/usr/share/argon-fan/config.example.toml", mode = "0644" },
+    { source = "assets/config.toml", dest = "/etc/argon-fan/config.toml", mode = "0644" }
+]
 
-# External
+[package.metadata.deb.variants.v2]
+name = "argon-fan"
+features = ["v2"]
+
+[package.metadata.deb.variants.v3]
+name = "argon-fan"
+features = ["v3"]
+
+[features]
+# Config formats
+json = ["config/json"]
+toml = ["config/toml"]
+
+# Cases
+v2 = []
+v3 = []
+
+default = ["toml"]
+
+[dependencies]
 clap = { version = "4", default-features = false, features = ["color", "derive", "error-context", "help", "std", "suggestions", "usage"] }
 config = { version = "0.15", default-features = false }
 rppal = { version = "0.22", default-features = false }
@@ -55,12 +46,12 @@ thiserror = { version = "1", default-features = false }
 tracing = { version = "0.1", default-features = false, features = ["attributes", "std"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "fmt", "env-filter", "smallvec", "std", "tracing-log"] }
 
-[workspace.lints.clippy]
+[lints.clippy]
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 module_name_repetitions = "allow"
 
-[workspace.lints.rust]
+[lints.rust]
 rust_2018_idioms = { level = "warn", priority = -1 }
 rust_2021_compatibility = { level = "warn", priority = -1 }
 meta_variable_misuse = "warn"
@@ -74,3 +65,8 @@ unused_extern_crates = "warn"
 unused_import_braces = "warn"
 unused_lifetimes = "warn"
 unused_qualifications = "warn"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = "symbols"

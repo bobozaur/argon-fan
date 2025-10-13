@@ -1,17 +1,20 @@
-use std::{marker::PhantomData, time::Duration};
+use std::time::Duration;
 
 use rppal::i2c::I2c;
 use systemstat::{Platform, System};
 use tracing::instrument;
 
-use crate::{ArgonCase, I2cError, IoError, config::FanCurvePoint, error::ControllerError};
+use crate::{
+    case::{Argon, ArgonCase},
+    config::FanCurvePoint,
+    error::{ControllerError, I2cError, IoError},
+};
 
 #[allow(
     missing_debug_implementations,
     reason = "cannot auto-derive due to System"
 )]
-pub struct FanController<C: ArgonCase> {
-    case: PhantomData<fn() -> C>,
+pub struct FanController {
     i2c: I2c,
     system: System,
     state: ControllerState,
@@ -22,10 +25,7 @@ pub struct FanController<C: ArgonCase> {
     prev_temp: f32,
 }
 
-impl<C> FanController<C>
-where
-    C: ArgonCase,
-{
+impl FanController {
     const I2C_BUS: u8 = 1;
     const I2C_ADDRESS: u16 = 0x1a;
 
@@ -56,7 +56,6 @@ where
         tracing::info!("Initial CPU temperature: {prev_temp}");
 
         let mut controller = Self {
-            case: PhantomData,
             i2c,
             system: System::new(),
             state: ControllerState::Regular,
@@ -137,7 +136,7 @@ where
     fn set_speed(&mut self, speed: u8) -> Result<(), I2cError> {
         tracing::info!("Setting fan speed: {speed}%");
 
-        let (command, value) = C::i2c_fan_command(speed);
+        let (command, value) = Argon::i2c_fan_command(speed);
         self.i2c.smbus_write_byte(command, value)?;
         self.current_speed = speed;
 
@@ -145,10 +144,7 @@ where
     }
 }
 
-impl<C> Drop for FanController<C>
-where
-    C: ArgonCase,
-{
+impl Drop for FanController {
     fn drop(&mut self) {
         tracing::info!("Fan controller shutting down...");
 

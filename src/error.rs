@@ -1,6 +1,7 @@
-use thiserror::Error as ThisError;
+pub use std::io::Error as IoError;
 
-use crate::{I2cError, IoError};
+pub use rppal::i2c::Error as I2cError;
+use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
 pub enum ControllerError {

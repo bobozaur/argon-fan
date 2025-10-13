@@ -28,7 +28,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Check docs
-        run: cargo doc --workspace --no-deps --document-private-items
+        run: cargo doc --no-deps --document-private-items --all-features
         env:
           RUSTDOCFLAGS: -D warnings
 
@@ -45,7 +45,7 @@ jobs:
           components: clippy
 
       - name: Run clippy
-        run: cargo clippy --workspace
+        run: cargo clippy --all-features
         env:
           RUSTFLAGS: -D warnings
 
@@ -63,11 +63,14 @@ jobs:
       - name: Install cargo-deb
         run: cargo install cargo-deb
 
-      - name: Build argon-v2-fan DEB package
-        run: cargo deb -p argon-v2-fan
-
-      - name: Build argon-v3-fan DEB package
-        run: cargo deb -p argon-v3-fan
+      - name: Build DEB packages
+        run: |
+          VARIANTS=("v2" "v3")
+          
+          for variant in "${VARIANTS[@]}"; do
+            PACKAGE=$(cargo deb --variant=$variant | tail -1)
+            mv $PACKAGE ${PACKAGE/argon-fan_/argon-fan-${variant}_}
+          done
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -86,14 +89,14 @@ jobs:
       packages: write
     strategy:
       matrix:
-        package: ["argon-v2-fan", "argon-v3-fan"]
+        case_version: ["v2", "v3"]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Extract version
         run: |
-          VERSION=`cargo pkgid -p ${{ matrix.package }} | awk -F'[#@]' '{print $NF}'`
+          VERSION=$(cargo pkgid | awk -F'[#@]' '{print $NF}')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
@@ -115,7 +118,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha
           platforms: linux/arm64
-          build-args: ARGON_FAN=${{ matrix.package }}
+          build-args: CASE_VERSION=${{ matrix.case_version }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.package }}:${{ env.VERSION }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.package }}:latest
+            ghcr.io/${{ github.repository_owner }}/argon-fan-${{ matrix.case_version }}:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/argon-fan-${{ matrix.case_version }}:latest

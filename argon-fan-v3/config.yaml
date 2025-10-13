@@ -1,8 +1,8 @@
 name: "Argon40 V3 case fan"
 version: "1.0.0"
-slug: "argon-v3-fan"
+slug: "argon-fan-v3"
 description: "A background Rust service that controls the Argon40 V3 case fan"
-image: ghcr.io/bobozaur/argon-v3-fan
+image: ghcr.io/bobozaur/argon-fan-v3
 startup: system
 boot: auto
 arch:

@@ -1,10 +1,10 @@
 # Argon Fan
 
-A Rust library and Home Assistant add-on for controlling fans in Argon40 Raspberry Pi cases.
+Rust binaries and Home Assistant add-ons for controlling fans in Argon40 Raspberry Pi cases.
 
 ## Overview
 
-The library provides a generic interface for controlling Argon40 case fans via I2C, with specific implementations for different case versions that handle the varying I2C command protocols.
+The binary uses a generic interface for controlling Argon40 case fans via I2C, with specific implementations for different case versions that handle their I2C command particularities. The case version/variant must be selected at compile time through a feature flag.
 
 ## Features
 
@@ -14,11 +14,6 @@ The library provides a generic interface for controlling Argon40 case fans via I
 - Support for both TOML and JSON configuration (feature gated)
 - Systemd service integration
 - Home Assistant add-on support
-
-## Crate Documentation
-
-- [`argon-v2-fan`](./argon-v2-fan/) - For Argon40 V2 cases
-- [`argon-v3-fan`](./argon-v3-fan/) - For Argon40 V3 cases
 
 ## Configuration
 
@@ -60,16 +55,16 @@ Install the cross-compilation tools:
 cargo install cross cargo-deb
 ```
 
-Build for Raspberry Pi (ARM64):
+Build DEB packages for Raspberry Pi (ARM64):
 
 ```bash
 # For Argon V2 cases
-cross build --release --target aarch64-unknown-linux-gnu -p argon-v2-fan
-cargo deb --target aarch64-unknown-linux-gnu --no-build -p argon-v2-fan
+cross build --release --features v2 --target aarch64-unknown-linux-gnu
+cargo deb --target aarch64-unknown-linux-gnu --no-build --variant=v2
 
 # For Argon V3 cases
-cross build --release --target aarch64-unknown-linux-gnu -p argon-v3-fan
-cargo deb --target aarch64-unknown-linux-gnu --no-build -p argon-v3-fan
+cross build --release --features v3 --target aarch64-unknown-linux-gnu
+cargo deb --target aarch64-unknown-linux-gnu --no-build --variant=v3
 ```
 
 The `.deb` packages will be generated in `target/aarch64-unknown-linux-gnu/debian/` and can be installed on your Raspberry Pi.

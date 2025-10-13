@@ -1,9 +1,9 @@
-use std::error::Error;
+use crate::case::ArgonCase;
 
-use argon_fan::ArgonCase;
+pub type Argon = ArgonV3;
 
 /// Argon40 V3 case.
-struct ArgonV3;
+pub struct ArgonV3;
 
 /// [`ArgonCase`] impl for [`ArgonV3`].
 ///
@@ -14,8 +14,4 @@ impl ArgonCase for ArgonV3 {
         const FAN_COMMAND: u8 = 0x80;
         (FAN_COMMAND, speed)
     }
-}
-
-fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    argon_fan::run::<ArgonV3>()
 }

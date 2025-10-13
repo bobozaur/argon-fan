@@ -1,9 +1,9 @@
-use std::error::Error;
+use crate::case::ArgonCase;
 
-use argon_fan::ArgonCase;
+pub type Argon = ArgonV2;
 
 /// Argon40 V2 case.
-struct ArgonV2;
+pub struct ArgonV2;
 
 /// [`ArgonCase`] impl for [`ArgonV2`].
 ///
@@ -12,8 +12,4 @@ impl ArgonCase for ArgonV2 {
     fn i2c_fan_command(speed: u8) -> (u8, u8) {
         (speed, 0)
     }
-}
-
-fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    argon_fan::run::<ArgonV2>()
 }
